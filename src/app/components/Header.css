@@ -99,15 +99,13 @@ a {
 
 .btn {
   display: flex;
-  gap: 0.5rem;
+  justify-content: center;
   align-items: center;
   cursor: pointer;
   border: none;
   background-color: #ec5e2a;
   border: 2px solid #ec5e2a;
-
   color: #fff;
-
   font-size: 1.4rem;
   font-weight: 500;
   padding: 1rem 2rem;
