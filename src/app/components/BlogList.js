@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
 import BlogFilter from "../components/BlogFilter";
-import BlogItem from "./BlogItem";
+import BlogItem from "./BlogItem"; 
 
 export default function BlogList({ posts }) {
   return (
