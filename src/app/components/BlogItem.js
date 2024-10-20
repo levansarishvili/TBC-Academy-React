@@ -1,3 +1,7 @@
+import React from "react";
+import Button from "./Button";
+import Link from "next/link";
+
 function BlogItem({ id, title, content, views }) {
   return (
     <li className="blog__list__item">
