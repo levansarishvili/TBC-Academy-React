@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { setCookie } from "cookies-next";
 
 export async function POST(req) {
   const { username, password } = await req.json();
@@ -25,14 +24,29 @@ export async function POST(req) {
     const data = await response.json();
     const accessToken = data.accessToken;
 
+    // Fetch authenticated user data
+    const userDataResponse = await fetch("https://dummyjson.com/user/me", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!userDataResponse.ok) {
+      throw new Error("Failed to fetch user data");
+    }
+
+    const userData = await userDataResponse.json();
+
     // Set token in cookies
     const responseWithCookies = NextResponse.json({
       message: "Login successful",
+      userData,
     });
     responseWithCookies.cookies.set("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 30, // 30 minutes
+      maxAge: 60 * 30,
       path: "/",
     });
 

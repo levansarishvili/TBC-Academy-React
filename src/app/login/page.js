@@ -32,7 +32,10 @@ export default function LoginPage() {
 
       if (res.ok) {
         // Redirect or handle successful login
-        window.location.href = "/";
+        // window.location.href = "/profile";
+
+        const data = await res.json();
+        console.log(data);
       } else {
         const errorData = await res.json();
         setError(errorData.error);
