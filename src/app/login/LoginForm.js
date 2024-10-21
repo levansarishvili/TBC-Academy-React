@@ -18,8 +18,8 @@ export default async function LoginUser(username, password) {
 
     const data = await res.json();
     console.log(data);
-    const accessToken = data.accessToken;
 
+    const accessToken = data.accessToken;
     // Save accessToken into local storage
     localStorage.setItem("accessToken", accessToken);
     return data;

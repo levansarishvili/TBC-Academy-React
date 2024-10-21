@@ -22,9 +22,8 @@ export default function LoginPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     LoginUser(username, password);
-    console.log(localStorage.getItem("accessToken"));
     if (localStorage.getItem("accessToken")) {
-      window.location.href = "/store";
+      // window.location.href = "/";
     }
   }
 
