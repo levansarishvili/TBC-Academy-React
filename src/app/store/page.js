@@ -1,50 +1,124 @@
+'use client'
+
 import Link from "next/link";
 import Button from "../components/Button";
 import ProductFilter from "../components/ProductFilter";
 import Image from "next/image";
 import "./Store.css";
 import "../mediaQueries.css";
+import { useState, useEffect } from "react";
 
 // Create Online Store component and fetch product data
-export default async function Store({ searchParams }) {
-  // Extracting search query from searchParams
+export default function Store({ searchParams }) {
   const searchQuery = searchParams?.search ?? "";
-
-  // Extracting category filter query from searchParams
   const filter = searchParams?.category ?? "all";
-
-  // Extracting sort query from searchParams
   const sortOptions = searchParams?.sortBy ?? "";
   const [sortByValue, orderValue] = sortOptions.split("-");
+  const [products, setProducts] = useState([]);
+  const [newProduct, setNewProduct] = useState({
+    title: '',
+    price: '',
+    stock: 1,
+    image: null,
+    availabilityStatus: 'in-stock', // Default status
+  });
 
-  // URL for fetching product data
-  let productsUrl = "https://dummyjson.com/product";
+  useEffect(() => {
+    fetchProducts();
+  }, [searchQuery, sortOptions, filter]);
+
+  let productsUrl = "https://dummyjson.com/products";
 
   if (searchQuery) {
-    productsUrl = `https://dummyjson.com/product/search?q=${searchQuery}`;
+    productsUrl = `https://dummyjson.com/products/search?q=${searchQuery}`;
     if (sortOptions) {
       productsUrl += `&sortBy=${sortByValue}&order=${orderValue}`;
     }
   } else if (sortOptions) {
-    productsUrl = `https://dummyjson.com/product?sortBy=${sortByValue}&order=${orderValue}`;
+    productsUrl = `https://dummyjson.com/products?sortBy=${sortByValue}&order=${orderValue}`;
   } else if (filter !== "all") {
-    productsUrl = `https://dummyjson.com/product/category/${filter}`;
+    productsUrl = `https://dummyjson.com/products/category/${filter}`;
   }
 
-  // Fetching function to fetch product data from API
-  async function FetchProductData() {
-    const response = await fetch(`${productsUrl}`);
+  async function fetchProducts() {
+    const response = await fetch(productsUrl);
     const data = await response.json();
-    return data.products;
+    setProducts(data.products);
   }
 
-  const products = await FetchProductData();
+  const handleAddProduct = async (e) => {
+    e.preventDefault();
 
-  const reviews = products.map((product) => product.reviews);
+    // Prepare form data for image upload
+    const formData = new FormData();
+    formData.append('title', newProduct.title);
+    formData.append('price', newProduct.price);
+    formData.append('stock', newProduct.stock);
+    formData.append('image', newProduct.image);
+    formData.append('availabilityStatus', newProduct.availabilityStatus); // Add availability status
+
+    const response = await fetch('https://dummyjson.com/products/add', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const createdProduct = await response.json();
+
+    // Add new product at the beginning of the product list
+    setProducts((prevProducts) => [createdProduct, ...prevProducts]);
+    setNewProduct({ title: '', price: '', stock: 1, image: null, availabilityStatus: 'in-stock' }); // Reset form
+  };
+
+  const handleImageChange = (e) => {
+    setNewProduct({ ...newProduct, image: e.target.files[0] });
+  };
+
+  const handleStatusChange = (e) => {
+    setNewProduct({ ...newProduct, availabilityStatus: e.target.value });
+  };
 
   return (
     <section className="product__page-wrapper">
       <h1 className="section__header">Products</h1>
+      <form onSubmit={handleAddProduct} className="new-product-form">
+        <input
+          type="text"
+          placeholder="Product Title"
+          value={newProduct.title}
+          onChange={(e) => setNewProduct({ ...newProduct, title: e.target.value })}
+          required
+        />
+        <input
+          type="number"
+          placeholder="Product Price"
+          value={newProduct.price}
+          onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+          required
+        />
+        <input
+          type="number"
+          placeholder="Product Stock"
+          value={newProduct.stock}
+          onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
+          required
+        />
+        <select
+          value={newProduct.availabilityStatus}
+          onChange={handleStatusChange}
+          required
+        >
+          <option value="in-stock">In Stock</option>
+          <option value="low-stock">Low Stock</option>
+          <option value="out-of-stock">Out of Stock</option>
+        </select>
+        <input
+          type="file"
+          accept="image/*" // Accept only image files
+          onChange={handleImageChange}
+          required
+        />
+        <button type="submit">Add Product</button>
+      </form>
       <div className="product__page-content">
         <ProductFilter />
         <ProductList products={products} />
@@ -75,9 +149,9 @@ function ProductList({ products }) {
 // Product card component
 function Product({ id, name, imageSrc, availabilityStatus, stock, price }) {
   let stockStatus = "";
-  if (availabilityStatus === "In Stock") {
+  if (availabilityStatus === "in-stock") {
     stockStatus = "in-stock";
-  } else if (availabilityStatus === "Low Stock") {
+  } else if (availabilityStatus === "low-stock") {
     stockStatus = "low-stock";
   } else {
     stockStatus = "out-of-stock";
@@ -86,7 +160,6 @@ function Product({ id, name, imageSrc, availabilityStatus, stock, price }) {
   return (
     <div className="product-card">
       <Link className="product__link" href={`/store/${id}`}>
-        {/* <img className="product__img" src={imageSrc} alt="Product"></img> */}
         <div className="product__img-wrapper">
           <Image
             className="product__img"
@@ -98,7 +171,6 @@ function Product({ id, name, imageSrc, availabilityStatus, stock, price }) {
             priority={true}
           />
         </div>
-
         <div className="product-card__content">
           <h2 className="product__title">{name}</h2>
           <div className="product__desc">
@@ -112,8 +184,8 @@ function Product({ id, name, imageSrc, availabilityStatus, stock, price }) {
           </div>
         </div>
       </Link>
-
       <Button className="btn" name="Add to cart" />
     </div>
   );
 }
+
