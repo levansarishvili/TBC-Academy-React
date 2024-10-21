@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import Link from "next/link";
 import Button from "../components/Button";
@@ -20,7 +20,8 @@ export default function Store({ searchParams }) {
     price: '',
     stock: 1,
     image: null,
-    availabilityStatus: 'in-stock', // Default status
+    imagePreview: null,
+    availabilityStatus: "in-stock",
   });
 
   useEffect(() => {
@@ -55,7 +56,7 @@ export default function Store({ searchParams }) {
     formData.append('price', newProduct.price);
     formData.append('stock', newProduct.stock);
     formData.append('image', newProduct.image);
-    formData.append('availabilityStatus', newProduct.availabilityStatus); // Set stock status based on selection
+    formData.append('availabilityStatus', newProduct.availabilityStatus);
 
     const response = await fetch('https://dummyjson.com/products/add', {
       method: 'POST',
@@ -66,11 +67,29 @@ export default function Store({ searchParams }) {
 
     // Add new product at the beginning of the product list
     setProducts((prevProducts) => [createdProduct, ...prevProducts]);
-    setNewProduct({ title: '', price: '', stock: 1, image: null, availabilityStatus: 'in-stock' }); // Reset form
+    setNewProduct({
+      title: '',
+      price: '',
+      stock: 1,
+      image: null,
+      imagePreview: null,
+      availabilityStatus: 'in-stock',
+    });
   };
 
   const handleImageChange = (e) => {
-    setNewProduct({ ...newProduct, image: e.target.files[0] });
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewProduct({
+          ...newProduct,
+          image: file,
+          imagePreview: reader.result,
+        });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -81,14 +100,18 @@ export default function Store({ searchParams }) {
           type="text"
           placeholder="Product Title"
           value={newProduct.title}
-          onChange={(e) => setNewProduct({ ...newProduct, title: e.target.value })}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, title: e.target.value })
+          }
           required
         />
         <input
           type="number"
           placeholder="Product Price"
           value={newProduct.price}
-          onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, price: e.target.value })
+          }
           required
         />
         <div className="stock-input-wrapper">
@@ -96,13 +119,17 @@ export default function Store({ searchParams }) {
             type="number"
             placeholder="Product Stock"
             value={newProduct.stock}
-            onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
+            onChange={(e) =>
+              setNewProduct({ ...newProduct, stock: e.target.value })
+            }
             required
           />
         </div>
         <select
           value={newProduct.availabilityStatus}
-          onChange={(e) => setNewProduct({ ...newProduct, availabilityStatus: e.target.value })}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, availabilityStatus: e.target.value })
+          }
         >
           <option value="in-stock">In Stock</option>
           <option value="low-stock">Low Stock</option>
@@ -110,10 +137,18 @@ export default function Store({ searchParams }) {
         </select>
         <input
           type="file"
-          accept="image/*" 
+          accept="image/*"
           onChange={handleImageChange}
           required
         />
+        {newProduct.imagePreview && (
+          <img
+            src={newProduct.imagePreview}
+            alt="Image Preview"
+            className="image-preview"
+            style={{ maxWidth: "100px", marginTop: "10px" }}
+          />
+        )}
         <button type="submit">Add Product</button>
       </form>
       <div className="product__page-content">
@@ -133,8 +168,8 @@ function ProductList({ products }) {
           key={product.id}
           id={product.id}
           name={product.title}
-          imageSrc={product.thumbnail}
-          availabilityStatus={product.availabilityStatus || 'in-stock'} // Default to 'in-stock' if undefined
+          imageSrc={product.thumbnail || product.imagePreview}
+          availabilityStatus={product.availabilityStatus || 'in-stock'}
           stock={product.stock}
           price={product.price}
         />
@@ -145,9 +180,9 @@ function ProductList({ products }) {
 
 // Product card component
 function Product({ id, name, imageSrc, availabilityStatus, stock, price }) {
-  // Check if availabilityStatus is defined, default to 'in-stock' if not
-  const formattedStatus = (availabilityStatus || 'in-stock').charAt(0).toUpperCase() + 
-                          (availabilityStatus || 'in-stock').slice(1).replace("-", " ");
+  const formattedStatus =
+    (availabilityStatus || "in-stock").charAt(0).toUpperCase() +
+    (availabilityStatus || "in-stock").slice(1).replace("-", " ");
 
   return (
     <div className="product-card">
@@ -168,7 +203,7 @@ function Product({ id, name, imageSrc, availabilityStatus, stock, price }) {
           <div className="product__desc">
             <div className="product__stock-wrapper">
               <p className="product__availabilityStatus">
-                {`${formattedStatus}: ${stock}`} {/* Display formatted stock */}
+                {`${formattedStatus}: ${stock}`}
               </p>
             </div>
             <p className="product__price">{`${price} $`}</p>
