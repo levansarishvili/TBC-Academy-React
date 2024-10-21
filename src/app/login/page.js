@@ -1,13 +1,13 @@
 "use client";
 
-import "./LoginForm.css";
-import Button from "../components/Button";
-import LoginUser from "./LoginForm";
 import { useState } from "react";
+import Button from "../components/Button";
+import "./LoginForm.css";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
 
   // Input change handlers
   function handleUsernameChange(e) {
@@ -21,9 +21,25 @@ export default function LoginPage() {
   // Handle form submission
   async function handleSubmit(e) {
     e.preventDefault();
-    LoginUser(username, password);
-    if (localStorage.getItem("accessToken")) {
-      // window.location.href = "/";
+    setError(null);
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (res.ok) {
+        // Redirect or handle successful login
+        window.location.href = "/";
+      } else {
+        const errorData = await res.json();
+        setError(errorData.error);
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+      setError("An unexpected error occurred");
     }
   }
 
@@ -31,7 +47,6 @@ export default function LoginPage() {
     <div className="login-page__wrapper">
       <h1 className="section-header">Login Form</h1>
       <div className="login-form-wrapper">
-        {/* Login form */}
         <form className="login-form" onSubmit={handleSubmit}>
           <label className="login-input__label" htmlFor="username">
             <p className="login-label__txt">Username:</p>
@@ -55,6 +70,7 @@ export default function LoginPage() {
           </label>
           <Button type="submit" className="btn login-button" name="Sign in" />
         </form>
+        {error && <p className="error-message">{error}</p>}
         <div className="login-footer">
           <p className="login-footer-txt">
             Forgot <span className="highlight">Username / Password</span>?
