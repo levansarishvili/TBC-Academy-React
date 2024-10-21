@@ -55,7 +55,7 @@ export default function Store({ searchParams }) {
     formData.append('price', newProduct.price);
     formData.append('stock', newProduct.stock);
     formData.append('image', newProduct.image);
-    formData.append('availabilityStatus', newProduct.availabilityStatus); // Add availability status
+    formData.append('availabilityStatus', newProduct.availabilityStatus); // Set stock status based on selection
 
     const response = await fetch('https://dummyjson.com/products/add', {
       method: 'POST',
@@ -71,10 +71,6 @@ export default function Store({ searchParams }) {
 
   const handleImageChange = (e) => {
     setNewProduct({ ...newProduct, image: e.target.files[0] });
-  };
-
-  const handleStatusChange = (e) => {
-    setNewProduct({ ...newProduct, availabilityStatus: e.target.value });
   };
 
   return (
@@ -95,17 +91,18 @@ export default function Store({ searchParams }) {
           onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
           required
         />
-        <input
-          type="number"
-          placeholder="Product Stock"
-          value={newProduct.stock}
-          onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
-          required
-        />
+        <div className="stock-input-wrapper">
+          <input
+            type="number"
+            placeholder="Product Stock"
+            value={newProduct.stock}
+            onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
+            required
+          />
+        </div>
         <select
           value={newProduct.availabilityStatus}
-          onChange={handleStatusChange}
-          required
+          onChange={(e) => setNewProduct({ ...newProduct, availabilityStatus: e.target.value })}
         >
           <option value="in-stock">In Stock</option>
           <option value="low-stock">Low Stock</option>
@@ -113,7 +110,7 @@ export default function Store({ searchParams }) {
         </select>
         <input
           type="file"
-          accept="image/*" // Accept only image files
+          accept="image/*" 
           onChange={handleImageChange}
           required
         />
@@ -137,7 +134,7 @@ function ProductList({ products }) {
           id={product.id}
           name={product.title}
           imageSrc={product.thumbnail}
-          availabilityStatus={product.availabilityStatus}
+          availabilityStatus={product.availabilityStatus || 'in-stock'} // Default to 'in-stock' if undefined
           stock={product.stock}
           price={product.price}
         />
@@ -148,14 +145,9 @@ function ProductList({ products }) {
 
 // Product card component
 function Product({ id, name, imageSrc, availabilityStatus, stock, price }) {
-  let stockStatus = "";
-  if (availabilityStatus === "in-stock") {
-    stockStatus = "in-stock";
-  } else if (availabilityStatus === "low-stock") {
-    stockStatus = "low-stock";
-  } else {
-    stockStatus = "out-of-stock";
-  }
+  // Check if availabilityStatus is defined, default to 'in-stock' if not
+  const formattedStatus = (availabilityStatus || 'in-stock').charAt(0).toUpperCase() + 
+                          (availabilityStatus || 'in-stock').slice(1).replace("-", " ");
 
   return (
     <div className="product-card">
@@ -175,10 +167,9 @@ function Product({ id, name, imageSrc, availabilityStatus, stock, price }) {
           <h2 className="product__title">{name}</h2>
           <div className="product__desc">
             <div className="product__stock-wrapper">
-              <p className={`product__availabilityStatus ${stockStatus}`}>
-                {availabilityStatus}:
+              <p className="product__availabilityStatus">
+                {`${formattedStatus}: ${stock}`} {/* Display formatted stock */}
               </p>
-              <p className="product__stock">{stock}</p>
             </div>
             <p className="product__price">{`${price} $`}</p>
           </div>
@@ -188,4 +179,3 @@ function Product({ id, name, imageSrc, availabilityStatus, stock, price }) {
     </div>
   );
 }
-
