@@ -203,10 +203,6 @@
   transition: background-color 0.3s;
 }
 
-.new-product-form button:hover {
-  background-color: #e95c26;
-}
-
 /* Product Addition Form CSS - Responsive */
 
 @media (max-width: 600px) {
