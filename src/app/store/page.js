@@ -18,7 +18,7 @@ export default function Store({ searchParams }) {
   const [newProduct, setNewProduct] = useState({
     title: '',
     price: '',
-    stock: 1,
+    stock: '',
     image: null,
     imagePreview: null,
     availabilityStatus: "in-stock",
@@ -114,7 +114,6 @@ export default function Store({ searchParams }) {
           }
           required
         />
-        <div className="stock-input-wrapper">
           <input
             type="number"
             placeholder="Product Stock"
@@ -124,7 +123,6 @@ export default function Store({ searchParams }) {
             }
             required
           />
-        </div>
         <select
           value={newProduct.availabilityStatus}
           onChange={(e) =>
